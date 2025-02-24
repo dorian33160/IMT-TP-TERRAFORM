@@ -1,27 +1,28 @@
+# Pull the Docker image
+resource "docker_image" "nginx" {
+  name = var.image_name
+}
+
+# Create Docker containers
 resource "docker_container" "nginx" {
   count = var.num_containers
-
-  image = docker_image.nginx.image_id
-  name  = "tutorial-${count.index + 1}"
-  memory = var.container_memory
-  privileged = var.privileged
+  image = docker_image.nginx.image_id  # Use the image ID from the pulled image
+  name  = "nginx-${count.index}"
 
   ports {
     internal = 80
     external = var.starting_port + count.index
   }
 
+  memory = "${var.container_memory}m"  # Convert memory to string with 'm' suffix
+  privileged = var.privileged
+
   provisioner "local-exec" {
     command = <<EOT
-      mkdir -p ${path.module}/html
-      cp ${path.module}/index.html.tpl ${path.module}/html/index.html
-      sed -i 's/{{HOSTNAME}}/${self.name}/g' ${path.module}/html/index.html
+      echo "server { listen 80; location / { return 200 'Hostname: ${self.name}'; } }" > nginx.conf
+      docker cp nginx.conf ${self.id}:/etc/nginx/conf.d/default.conf
+      docker exec ${self.id} nginx -s reload
     EOT
-  }
-
-  volumes {
-    container_path = "/usr/share/nginx/html"
-    host_path      = "${abspath(path.module)}/html"
   }
 }
 
