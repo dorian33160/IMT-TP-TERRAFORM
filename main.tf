@@ -29,5 +29,14 @@ resource "docker_container" "nginx" {
     internal = 80
     external = var.starting_port + count.index
   }
+
+  volumes {
+    container_path = "/usr/share/nginx/html"
+    host_path      = "${path.module}/index.html"
+  }
+
+  provisioner "local-exec" {
+    command = "sed -i 's/{{HOSTNAME}}/${self.name}/g' ${path.module}/index.html"
+  }
 }
 
