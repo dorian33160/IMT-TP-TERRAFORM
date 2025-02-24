@@ -39,7 +39,7 @@ resource "docker_container" "nginx" {
 
   volumes {
     container_path = "/usr/share/nginx/html"
-    host_path      = "${path.module}/index.html"
+    host_path      = "${abspath(path.module)}/index.html"
   }
 }
 
