@@ -14,7 +14,7 @@ resource "docker_container" "nginx" {
     external = var.starting_port + count.index
   }
 
-  memory = "${var.container_memory}m"  # Convert memory to string with 'm' suffix
+  memory = var.container_memory * 1024 * 1024  # Convert megabytes to bytes
   privileged = var.privileged
 
   provisioner "local-exec" {
